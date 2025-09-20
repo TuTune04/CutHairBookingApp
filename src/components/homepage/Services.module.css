@@ -1,0 +1,37 @@
+.bannerServices {
+    font-size: 20px;
+    padding-block: 8px;
+    border-block: 1px solid;
+    overflow: hidden;
+    user-select: none;
+    color: black;
+    --gap: 20px;
+    display: flex;
+    gap: var(--gap);
+}
+
+.bannerServices ul {
+    list-style: none;
+    flex-shrink: 0;
+    min-width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--gap);
+    
+    animation: scroll 10s linear infinite;
+}
+
+.bannerServices:hover ul {
+    animation-play-state: paused;
+}
+
+/* .bannerServices ul:last-child {
+    background-color: aqua;   
+} */
+
+@keyframes scroll {
+    to {
+        transform: translateX(calc(-100% - var(--gap)));
+    }
+}
