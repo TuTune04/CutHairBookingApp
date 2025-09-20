@@ -17,6 +17,9 @@ COPY . .
 # Biến môi trường cho Next.js
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Build ứng dụng
 RUN npm run build
 

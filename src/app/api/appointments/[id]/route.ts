@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server'
 // GET /api/appointments/[id] - Lấy thông tin lịch hẹn theo ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
-    const id = params.id
 
     const appointment = await prisma.appointment.findUnique({
       where: { id }
@@ -33,10 +33,10 @@ export async function GET(
 // PUT /api/appointments/[id] - Cập nhật lịch hẹn
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
-    const id = params.id
     const body = await request.json()
     const { name, phone, service, datetime, status } = body
 
@@ -92,10 +92,10 @@ export async function PUT(
 // DELETE /api/appointments/[id] - Xóa lịch hẹn
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
-    const id = params.id
 
     // Kiểm tra lịch hẹn tồn tại
     const existingAppointment = await prisma.appointment.findUnique({
