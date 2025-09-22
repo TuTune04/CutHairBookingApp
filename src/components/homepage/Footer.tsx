@@ -1,15 +1,13 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import ScrollTrigger from 'gsap/ScrollTrigger'
 import Link from 'next/link'
 import { GradientText } from '@/components/TypewriterText'
 
-// Register ScrollTrigger plugin
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const footerLinks = {
   quick: [
@@ -30,89 +28,93 @@ export default function Footer() {
   const contentRef = useRef<HTMLDivElement>(null)
   const backgroundRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!footerRef.current) return
 
     const footer = footerRef.current
     const content = contentRef.current
     const background = backgroundRef.current
 
-    // Background elements animation
-    if (background) {
-      gsap.fromTo(background.children, 
-        { opacity: 0, scale: 0, rotation: 0 },
-        { 
-          opacity: 1, 
-          scale: 1, 
-          rotation: 360,
-          duration: 2,
-          stagger: 0.3,
-          ease: 'elastic.out(1, 0.3)',
-          scrollTrigger: {
-            trigger: footer,
-            start: 'top 80%',
-            end: 'bottom 20%',
-            toggleActions: 'play none none reverse'
+    const ctx = gsap.context(() => {
+      // Background elements animation
+      if (background) {
+        gsap.fromTo(background.children, 
+          { opacity: 0, scale: 0, rotation: 0 },
+          { 
+            opacity: 1, 
+            scale: 1, 
+            rotation: 360,
+            duration: 2,
+            stagger: 0.3,
+            ease: 'elastic.out(1, 0.3)',
+            scrollTrigger: {
+              trigger: footer,
+              start: 'top 80%',
+              end: 'bottom 20%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        }
-      )
+        )
 
-      // Continuous floating animation
-      gsap.to(background.children, {
-        y: 'random(-20, 20)',
-        x: 'random(-10, 10)',
-        rotation: 'random(-5, 5)',
-        duration: 'random(4, 8)',
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-        stagger: 0.5
-      })
-    }
+        // Continuous floating animation
+        gsap.to(background.children, {
+          y: 'random(-20, 20)',
+          x: 'random(-10, 10)',
+          rotation: 'random(-5, 5)',
+          duration: 'random(4, 8)',
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+          stagger: 0.5
+        })
+      }
 
-    // Content animation
-    if (content) {
-      gsap.fromTo(content.children, 
-        { opacity: 0, y: 50, scale: 0.9 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: 'back.out(1.7)',
-          scrollTrigger: {
-            trigger: content,
-            start: 'top 85%',
-            end: 'bottom 15%',
-            toggleActions: 'play none none reverse'
+      // Content animation
+      if (content) {
+        gsap.fromTo(content.children, 
+          { opacity: 0, y: 50, scale: 0.9 },
+          { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'back.out(1.7)',
+            scrollTrigger: {
+              trigger: content,
+              start: 'top 85%',
+              end: 'bottom 15%',
+              toggleActions: 'play none none reverse'
+            }
           }
-        }
-      )
-    }
+        )
+      }
 
-    // Link hover animations
-    const links = footer.querySelectorAll('a')
-    Array.from(links).forEach((link: Element) => {
-      link.addEventListener('mouseenter', () => {
-        gsap.to(link, {
-          y: -2,
-          color: '#0ea5e9',
-          duration: 0.3,
-          ease: 'power2.out'
+      // Link hover animations
+      const links = footer.querySelectorAll('a')
+      Array.from(links).forEach((link: Element) => {
+        link.addEventListener('mouseenter', () => {
+          gsap.to(link, {
+            y: -2,
+            color: '#0ea5e9',
+            duration: 0.3,
+            ease: 'power2.out'
+          })
+        })
+        
+        link.addEventListener('mouseleave', () => {
+          gsap.to(link, {
+            y: 0,
+            color: '#cbd5e1',
+            duration: 0.3,
+            ease: 'power2.out'
+          })
         })
       })
-      
-      link.addEventListener('mouseleave', () => {
-        gsap.to(link, {
-          y: 0,
-          color: '#cbd5e1',
-          duration: 0.3,
-          ease: 'power2.out'
-        })
-      })
-    })
-  }, [])
+    }, footerRef) // scope all animations to footerRef
+
+    return () => ctx.revert() // cleanup
+  }, { scope: footerRef })
 
   return (
     <footer 

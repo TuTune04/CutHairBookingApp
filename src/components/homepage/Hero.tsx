@@ -1,11 +1,15 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { gsap } from 'gsap'
+import { useGSAP } from '@gsap/react'
+import ScrollTrigger from 'gsap/ScrollTrigger'
 import { GradientText } from '@/components/TypewriterText'
 import InteractiveButton from '@/components/InteractiveButton'
 import FloatingElement from '@/components/FloatingElements'
 import { useOptimizedGSAP } from '@/hooks/useOptimizedGSAP'
+
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement>(null)
@@ -32,7 +36,7 @@ export default function Hero() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!heroRef.current) return
 
     const hero = heroRef.current
@@ -42,94 +46,97 @@ export default function Hero() {
     const background = backgroundRef.current
     const settings = getAnimationSettings()
 
-    // Skip complex animations on low-performance devices
-    if (settings.skipComplexAnimations) {
-      // Simple fade-in animation
-      gsap.fromTo([title, subtitle, button], 
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' }
-      )
-      return
-    }
+    const ctx = gsap.context(() => {
+      // Skip complex animations on low-performance devices
+      if (settings.skipComplexAnimations) {
+        // Simple fade-in animation
+        gsap.fromTo([title, subtitle, button], 
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' }
+        )
+        return
+      }
 
-    // Background elements animation (simplified for mobile)
-    if (background && !isMobile) {
-      createOptimizedAnimation(
-        background.children,
-        { opacity: 0, scale: 0.8 },
-        { 
-          opacity: 1, 
-          scale: 1,
-          duration: 1,
-          stagger: 0.2,
-          ease: 'power2.out'
-        }
-      )
-    }
+      // Background elements animation (simplified for mobile)
+      if (background && !isMobile) {
+        createOptimizedAnimation(
+          background.children,
+          { opacity: 0, scale: 0.8 },
+          { 
+            opacity: 1, 
+            scale: 1,
+            duration: 1,
+            stagger: 0.2,
+            ease: 'power2.out'
+          }
+        )
+      }
 
-    // Main content animation
-    const masterTl = gsap.timeline()
-    
-    masterTl
-      .fromTo(title, 
-        { opacity: 0, y: 50, scale: 0.9 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          scale: 1,
-          duration: settings.duration * 1.5, 
-          ease: settings.ease
-        }
-      )
-      .fromTo(subtitle, 
-        { opacity: 0, y: 30 },
-        { 
-          opacity: 1, 
-          y: 0,
-          duration: settings.duration, 
-          ease: settings.ease
-        }, '-=0.5'
-      )
-      .fromTo(button, 
-        { opacity: 0, scale: 0.8 },
-        { 
-          opacity: 1, 
-          scale: 1,
-          duration: settings.duration, 
-          ease: 'back.out(1.2)'
-        }, '-=0.3'
-      )
+      // Main content animation
+      const masterTl = gsap.timeline()
+      
+      masterTl
+        .fromTo(title, 
+          { opacity: 0, y: 50, scale: 0.9 },
+          { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            duration: settings.duration * 1.5, 
+            ease: settings.ease
+          }
+        )
+        .fromTo(subtitle, 
+          { opacity: 0, y: 30 },
+          { 
+            opacity: 1, 
+            y: 0,
+            duration: settings.duration, 
+            ease: settings.ease
+          }, '-=0.5'
+        )
+        .fromTo(button, 
+          { opacity: 0, scale: 0.8 },
+          { 
+            opacity: 1, 
+            scale: 1,
+            duration: settings.duration, 
+            ease: 'back.out(1.2)'
+          }, '-=0.3'
+        )
 
-    // Simplified floating animation for background elements (only on desktop)
-    if (background && !isMobile && !settings.skipComplexAnimations) {
-      gsap.to(background.children, {
-        y: 'random(-10, 10)',
-        x: 'random(-5, 5)',
-        duration: 'random(4, 8)',
-        ease: 'sine.inOut',
-        repeat: -1,
-        yoyo: true,
-        stagger: 0.5
-      })
-    }
-
-    // Simplified parallax effect (only on desktop)
-    if (!isMobile && !settings.skipComplexAnimations) {
-      const handleScroll = () => {
-        const scrolled = window.pageYOffset
-        const rate = scrolled * -0.3 // Reduced parallax intensity
-        
-        gsap.to(hero, {
-          y: rate,
-          duration: 0.1,
-          ease: 'none'
+      // Simplified floating animation for background elements (only on desktop)
+      if (background && !isMobile && !settings.skipComplexAnimations) {
+        gsap.to(background.children, {
+          y: 'random(-10, 10)',
+          x: 'random(-5, 5)',
+          duration: 'random(4, 8)',
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+          stagger: 0.5
         })
       }
 
-      window.addEventListener('scroll', handleScroll, { passive: true })
-      return () => window.removeEventListener('scroll', handleScroll)
-    }
-  }, [isMobile, createOptimizedAnimation, getAnimationSettings, shouldReduceMotion, isLowPerformance])
+      // Simplified parallax effect (only on desktop)
+      if (!isMobile && !settings.skipComplexAnimations) {
+        gsap.to(hero, {
+          scrollTrigger: {
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.1
+          },
+          y: (i, target) => -window.innerHeight * 0.3,
+          ease: 'none'
+        })
+      }
+    }, heroRef) // <- scope all your animations to the heroRef
+
+    return () => ctx.revert() // cleanup
+  }, {
+    dependencies: [isMobile, createOptimizedAnimation, getAnimationSettings, shouldReduceMotion, isLowPerformance],
+    scope: heroRef // <- this helps GSAP handle context cleanup
+  })
 
   return (
     <section 

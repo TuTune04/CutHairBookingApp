@@ -1,15 +1,13 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import ScrollTrigger from 'gsap/ScrollTrigger'
 import { GradientText } from '@/components/TypewriterText'
 import InteractiveButton from '@/components/InteractiveButton'
 
-// Register ScrollTrigger plugin
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
+gsap.registerPlugin(useGSAP, ScrollTrigger)
 
 const pricingPlans = [
   {
@@ -43,119 +41,123 @@ export default function Pricing() {
   const titleRef = useRef<HTMLDivElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!sectionRef.current) return
 
     const section = sectionRef.current
     const title = titleRef.current
     const cards = cardsRef.current
 
-    // Title animation
-    gsap.fromTo(title, 
-      { opacity: 0, y: 50, scale: 0.9 },
-      { 
-        opacity: 1, 
-        y: 0, 
-        scale: 1,
-        duration: 1,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: title,
-          start: 'top 80%',
-          end: 'bottom 20%',
-          toggleActions: 'play none none reverse'
-        }
-      }
-    )
-
-    // Cards animation with special effect for VIP card
-    if (cards) {
-      const cardElements = cards.children
-      
-      gsap.fromTo(cardElements, 
-        { 
-          opacity: 0, 
-          y: 100, 
-          scale: 0.8,
-          rotationX: 45
-        },
+    const ctx = gsap.context(() => {
+      // Title animation
+      gsap.fromTo(title, 
+        { opacity: 0, y: 50, scale: 0.9 },
         { 
           opacity: 1, 
           y: 0, 
           scale: 1,
-          rotationX: 0,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: 'back.out(1.7)',
+          duration: 1,
+          ease: 'power2.out',
           scrollTrigger: {
-            trigger: cards,
-            start: 'top 85%',
-            end: 'bottom 15%',
+            trigger: title,
+            start: 'top 80%',
+            end: 'bottom 20%',
             toggleActions: 'play none none reverse'
           }
         }
       )
 
-      // Special animation for VIP card
-      const vipCard = cardElements[3] // VIP card is the 4th element
-      if (vipCard) {
-        gsap.to(vipCard, {
-          boxShadow: '0 0 30px rgba(14, 165, 233, 0.3)',
-          duration: 2,
-          repeat: -1,
-          yoyo: true,
-          ease: 'sine.inOut'
+      // Cards animation with special effect for VIP card
+      if (cards) {
+        const cardElements = cards.children
+        
+        gsap.fromTo(cardElements, 
+          { 
+            opacity: 0, 
+            y: 100, 
+            scale: 0.8,
+            rotationX: 45
+          },
+          { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            rotationX: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'back.out(1.7)',
+            scrollTrigger: {
+              trigger: cards,
+              start: 'top 85%',
+              end: 'bottom 15%',
+              toggleActions: 'play none none reverse'
+            }
+          }
+        )
+
+        // Special animation for VIP card
+        const vipCard = cardElements[3] // VIP card is the 4th element
+        if (vipCard) {
+          gsap.to(vipCard, {
+            boxShadow: '0 0 30px rgba(14, 165, 233, 0.3)',
+            duration: 2,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut'
+          })
+        }
+
+        // Hover animations for each card
+        Array.from(cardElements).forEach((card: Element, index: number) => {
+          const isVip = index === 3
+          
+          card.addEventListener('mouseenter', () => {
+            gsap.to(card, {
+              y: -15,
+              scale: 1.05,
+              duration: 0.3,
+              ease: 'power2.out'
+            })
+            
+            if (isVip) {
+              gsap.to(card, {
+                boxShadow: '0 25px 50px rgba(14, 165, 233, 0.4)',
+                duration: 0.3
+              })
+            } else {
+              gsap.to(card, {
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+                duration: 0.3
+              })
+            }
+          })
+          
+          card.addEventListener('mouseleave', () => {
+            gsap.to(card, {
+              y: 0,
+              scale: 1,
+              duration: 0.3,
+              ease: 'power2.out'
+            })
+            
+            if (isVip) {
+              gsap.to(card, {
+                boxShadow: '0 0 30px rgba(14, 165, 233, 0.3)',
+                duration: 0.3
+              })
+            } else {
+              gsap.to(card, {
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
+                duration: 0.3
+              })
+            }
+          })
         })
       }
+    }, sectionRef) // scope all animations to sectionRef
 
-      // Hover animations for each card
-      Array.from(cardElements).forEach((card: Element, index: number) => {
-        const isVip = index === 3
-        
-        card.addEventListener('mouseenter', () => {
-          gsap.to(card, {
-            y: -15,
-            scale: 1.05,
-            duration: 0.3,
-            ease: 'power2.out'
-          })
-          
-          if (isVip) {
-            gsap.to(card, {
-              boxShadow: '0 25px 50px rgba(14, 165, 233, 0.4)',
-              duration: 0.3
-            })
-          } else {
-            gsap.to(card, {
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-              duration: 0.3
-            })
-          }
-        })
-        
-        card.addEventListener('mouseleave', () => {
-          gsap.to(card, {
-            y: 0,
-            scale: 1,
-            duration: 0.3,
-            ease: 'power2.out'
-          })
-          
-          if (isVip) {
-            gsap.to(card, {
-              boxShadow: '0 0 30px rgba(14, 165, 233, 0.3)',
-              duration: 0.3
-            })
-          } else {
-            gsap.to(card, {
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-              duration: 0.3
-            })
-          }
-        })
-      })
-    }
-  }, [])
+    return () => ctx.revert() // cleanup
+  }, { scope: sectionRef })
 
   return (
     <section 
